@@ -1,0 +1,13 @@
+#java specific
+*.class
+
+#maven build target
+target
+
+## generic files to ignore
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
+
