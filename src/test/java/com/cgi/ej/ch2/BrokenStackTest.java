@@ -10,13 +10,13 @@ import org.junit.Test;
 
 public class BrokenStackTest {
 
-    private BrokenStack stack;
+    private BrokenStack<String> stack;
     final NumberFormat nf = NumberFormat.getInstance();
 
 
     @Before
     public void setUp() throws Exception {
-        stack = new BrokenStack();
+        stack = new BrokenStack<String>();
     }
 
     @After
@@ -67,43 +67,23 @@ public class BrokenStackTest {
     public void testMemoryUsage() throws Exception {
         final int iterations = 1000000;
 
-        long usedBefore = getUsedMemory("Before");
-
         for (int i = 0; i < iterations; i++) {
-            stack.push(i);
+            stack.push(String.valueOf(i));
         }
         assertEquals(iterations, stack.size());
-
-        long usedAfterPush = getUsedMemory("After Push");
-
-        System.out.printf("Increase in memory usage after pushing: %s bytes%n%n", nf.format(usedAfterPush - usedBefore));
 
         for (int i = 0; i < iterations; i++) {
             stack.pop();
         }
         assertEquals(0, stack.size());
 
-        long usedAfterPop = getUsedMemory("After Pop");
-
-        System.out.printf("Change in memory usage after popping: %s bytes%n", nf.format(usedAfterPop - usedAfterPush));
-        System.out.printf("Total change in memory usage: %s bytes%n%n", nf.format(usedAfterPop - usedBefore));
-    }
-
-    private long getUsedMemory(String header) {
-        Runtime runtime = Runtime.getRuntime();
-
-        Tests.collectAllGarbage();
-
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long usedMemory = totalMemory - freeMemory;
-
-        System.out.printf("%s:%n", header);
-        System.out.printf("Total: %s bytes%n", nf.format(totalMemory));
-        System.out.printf("Used: %s bytes%n", nf.format(usedMemory));
-        System.out.printf("Free: %s bytes%n", nf.format(freeMemory));
-        System.out.println();
-
-        return usedMemory;
+        int leakedReferences = 0;
+        for (String item : stack.getIdleCapacity()) {
+        	if (item != null) {
+        		leakedReferences++;
+        	}
+        }
+        
+        assertEquals("Oops! You've leaked references in the stack.  ", 0, leakedReferences);
     }
 }
